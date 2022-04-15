@@ -1,0 +1,4 @@
+use Virginia Vassilevska Williams matrix multiplication algorithm in math library
+    https://scholar.google.com.br/citations?user=Wph6P_IAAAAJ&hl=pt-BR
+change joint index from u32 to u16
+set only one joint and weight to vertex

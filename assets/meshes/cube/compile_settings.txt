@@ -1,0 +1,2 @@
+normals = False
+uvs = False

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Font raster</title>
+<style>
+    body {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: black;
+        color: white;
+        padding: 0;
+        margin: 0;
+        font-size: 1em;
+    }
+    canvas {
+        image-rendering: pixelated
+    }
+</style>
+</head>
+<body>
+<canvas id="monospace"></canvas>
+<div id="monospace_size">test</div>
+<br>
+<button onclick="save()">save</button>
+<script>
+
+const chars = "█abcdefghijklmnopqrstuvxywzçáéíóúàèìòùãõâêîôûABCDEFGHIJKLMNOPQRSTUVXYWZÇÁÉÍÓÚÀÈÌÒÙÃÕÂÊÎÔÛ!@#$%&*()<>{}~^;:,./\\][|-+=_\"' █";
+const char_width = 38;
+const width = chars.length * char_width;
+const height = 64;
+document.getElementById("monospace_size").innerHTML = `
+length: ${chars.length}
+width: ${width}
+char width: ${char_width}px - ${char_width/width}%
+height: ${height}
+`.replaceAll("\n","<br>");
+const bottom_padding = 0;
+
+const canvas_monospace = document.getElementById("monospace");
+canvas_monospace.style.width = width + "px";
+canvas_monospace.style.height = (height + bottom_padding) + "px";
+canvas_monospace.width = width;
+canvas_monospace.height = height + bottom_padding;
+const ctx_monospace = canvas_monospace.getContext("2d");
+ctx_monospace.imageSmoothingEnabled = false;
+ctx_monospace.font = "bold " + height + "px monospace";
+ctx_monospace.fillStyle = "black";
+ctx_monospace.fillRect(0, 0, width, height + bottom_padding);
+ctx_monospace.fillStyle = "white";
+ctx_monospace.fillText(chars, 0, 49, width);
+
+var image_monospace = canvas_monospace.toDataURL("image/png").replace("image/png", "image/octet-stream");
+let xhr_monospace = new XMLHttpRequest();
+xhr_monospace.responseType = 'blob';
+xhr_monospace.onload = function () {
+    let a = document.createElement('a');
+    a.href = window.URL.createObjectURL(xhr_monospace.response);
+    a.download = 'monospace.png';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+};
+xhr_monospace.open('GET', image_monospace);
+window.save = () => {
+    xhr_monospace.send();
+}
+
+</script>
+</body>
+</html>

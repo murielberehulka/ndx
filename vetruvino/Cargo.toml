@@ -1,0 +1,13 @@
+[[bin]]
+name = "vetruvino"
+path = "src/main.rs"
+
+[package]
+name = "vetruvino"
+version = "0.1.0"
+authors = ["Muriel Berehulka <murielberehulka@hotmail.com>"]
+edition = "2021"
+resolver = "2"
+
+[dependencies]
+core = { path = "../core" }

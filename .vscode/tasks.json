@@ -1,0 +1,30 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "COMPILE",
+            "type": "shell",
+            "command": "cargo run --bin compiler --release",
+            "presentation": {
+                "clear": true
+            }
+        },
+        {
+            "label": "RUN",
+            "type": "shell",
+            "command": "cargo run --bin vetruvino --release",
+            "presentation": {
+                "clear": true
+            }
+        },
+        {
+            "label": "COMPILE_ANIMATIONS",
+            "type": "shell",
+            //"command": "compiler\\compile.bat", //windows
+            "command": "blender --background --python compiler/compile.py", //linux
+            "presentation": {
+                "clear": true
+            }
+        }
+    ]
+}

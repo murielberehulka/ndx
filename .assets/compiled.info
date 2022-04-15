@@ -1,0 +1,13 @@
+meshes:
+	0 mutant.gltf
+		vertices: 33813
+		normals: True
+		uvs: True
+		size: 1.08 MB
+	1 cube.glb
+		vertices: 36
+		normals: False
+		uvs: False
+		size: 0.0 MB
+total size: 1.08 MB
+compile time: 2.47 s
