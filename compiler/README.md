@@ -73,7 +73,7 @@ example:
 ```
 
 > compile_settings.json
-```
+```json
 {
     "ignore": false,
     "normals": true,
