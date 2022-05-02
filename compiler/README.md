@@ -61,18 +61,24 @@ blender --background --python compiler\compile.py
         - default: False
 
 ### How to use
-Place an compile_settings.txt file in the same folder as the asset
+Place an compile_settings.json file in the same folder as the asset
 
 example: 
 ```
 …
 ── ?
     ├── mesh.fbx
-    └── compile_settings.txt
+    └── compile_settings.json
 …
 ```
 
-> compile_settings.txt
+> compile_settings.json
 ```
-export_normals = True
+{
+    "ignore": false,
+    "normals": true,
+    "uvs": true,
+    "skeleton": true,
+    "scale": [4.0, 4.0, 4.0]
+}
 ```
