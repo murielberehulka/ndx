@@ -3,7 +3,6 @@ name = "texture"
 version = "0.1.0"
 authors = ["Muriel Berehulka <murielberehulka@hotmail.com>"]
 edition = "2021"
-resolver = "2"
 
 [dependencies]
 wgpu = "0.12"

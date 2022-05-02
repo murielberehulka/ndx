@@ -2,6 +2,7 @@ import struct
 import bpy
 import os
 import time
+import json
 from pathlib import Path
 
 start = time.time()
@@ -10,6 +11,8 @@ endian = "big"
 
 info = ""
 bytes = b""
+
+NULL_VALUE = struct.pack(">f", -1)
 
 def clear_scene():
     bpy.ops.object.select_all(action='SELECT')
@@ -41,23 +44,24 @@ for path in pathlist:
 """
 
 class MeshImportSettings:
+    ignore: bool = False
     normals: bool = True
     uvs: bool = True
+    skeleton: bool = True
+    scale: float = [1.0, 1.0, 1.0]
     def __init__(self, path: Path):
         if path.is_dir():
-            settings_path = path / "compile_settings.txt"
+            settings_path = path / "compile_settings.json"
             if settings_path.is_file():
-                f = open(settings_path)
-                c = f.read()
-                for c in c.split('\n'):
-                    cws = c.replace(" ","")
-                    args = cws.split("=")
-                    setattr(self, args[0], args[1] == "True")
-                f.close()
+                with open(settings_path) as f:
+                    j = json.load(f)
+                    for v in j:
+                        setattr(self, str(v), j[v])
     def vertex_type(self) -> bytearray:
         res = b""
-        res += b"f" if self.normals else b"_"
-        res += b"f" if self.uvs else b"_"
+        res += b"1" if self.normals else b"0"
+        res += b"1" if self.uvs else b"0"
+        res += b"1" if self.skeleton else b"0"
         return res
 
 bytes_length = 0
@@ -68,11 +72,11 @@ def compile_mesh(path: Path, a: str, b: str):
     global info
     global bytes
 
-    print("Loading mesh: " + str(path))
-
-    getattr(getattr(bpy.ops, a), b)(filepath=str(path))
-
     settings = MeshImportSettings(path.parent.resolve())
+    if settings.ignore: return
+
+    print("Loading mesh: " + str(path))
+    getattr(getattr(bpy.ops, a), b)(filepath=str(path))
     vertex_type = settings.vertex_type()
     bytes += b"mesh" + vertex_type
 
@@ -87,25 +91,37 @@ def compile_mesh(path: Path, a: str, b: str):
             "\t\tvertices: " + str(vertices_length) + "\n"\
             "\t\tnormals: " + str(settings.normals) + "\n"\
             "\t\tuvs: " + str(settings.uvs) + "\n"
-    bytes += b"mesh" + vertices_length.to_bytes(2, endian)
-    # Loop throw indices
+    bytes += vertices_length.to_bytes(2, endian)
     for face in ctx.data.polygons:
         face.use_smooth = True
-        for i in range(3):
-            v = ctx.data.vertices[face.vertices[i]]
+        for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
+            v = ctx.data.vertices[vert_idx]
             bytes += \
-                struct.pack("!f", v.co[0]) +\
-                struct.pack("!f", v.co[1]) +\
-                struct.pack("!f", v.co[2])
-            if settings.normals: bytes += \
-                struct.pack("!f", v.normal[0]) +\
-                struct.pack("!f", v.normal[1]) +\
-                struct.pack("!f", v.normal[2])
-            uv = ctx.data.uv_layers.active.data[face.vertices[i]].uv
-            if settings.uvs: bytes += \
-                struct.pack("!f", uv[0]) +\
-                struct.pack("!f", uv[1])
-    print(len(ctx.vertex_groups))
+                struct.pack(">f", v.co[0] * settings.scale[0]) +\
+                struct.pack(">f", v.co[1] * settings.scale[1]) +\
+                struct.pack(">f", v.co[2] * settings.scale[2])
+            if settings.normals:
+                bytes += \
+                    struct.pack(">f", v.normal[0]) +\
+                    struct.pack(">f", v.normal[1]) +\
+                    struct.pack(">f", v.normal[2])
+            if settings.uvs:
+                uv = ctx.data.uv_layers.active.data[loop_idx].uv
+                bytes += \
+                    struct.pack(">f", uv.x) +\
+                    struct.pack(">f", 1-uv.y)
+            if settings.skeleton:
+                groups = len(v.groups)
+                bytes += \
+                    struct.pack(">f", v.groups[0].group) if groups > 0 else NULL_VALUE +\
+                    struct.pack(">f", v.groups[1].group) if groups > 1 else NULL_VALUE +\
+                    struct.pack(">f", v.groups[2].group) if groups > 2 else NULL_VALUE +\
+                    struct.pack(">f", v.groups[3].group) if groups > 3 else NULL_VALUE
+                bytes += \
+                    struct.pack(">f", v.groups[0].weight) if groups > 0 else NULL_VALUE +\
+                    struct.pack(">f", v.groups[1].weight) if groups > 1 else NULL_VALUE +\
+                    struct.pack(">f", v.groups[2].weight) if groups > 2 else NULL_VALUE +\
+                    struct.pack(">f", v.groups[3].weight) if groups > 3 else NULL_VALUE
     global bytes_length
     bytes_length += len(bytes)
     info += "\t\tsize: " + str(round(len(bytes)/1000000, 2)) + " MB\n"

@@ -7,17 +7,16 @@ name = "core"
 version = "0.1.0"
 authors = ["Muriel Berehulka <murielberehulka@hotmail.com>"]
 edition = "2021"
-resolver = "2"
 
 [dependencies]
-winit = "0.26"
 wgpu = "0.12"
+image = "0.24"
+bytemuck = { version = "1.8", features = ["derive"] }
+winit = "0.26"
 env_logger = "0.9"
 futures = "0.3"
 gltf = "1.0.0"
-image = "0.24"
-bytemuck = { version = "1.8", features = ["derive"] }
 utils = { path = "../utils" }
 math = { path = "../math" }
 texture = { path = "../texture" }
-gui = { path = "../gui" }
+compiler = { path = "../compiler" }

@@ -1,10 +1,9 @@
 [workspace]
 resolver = "2"
 members = [
+    "compiler",
     "utils",
     "math",
     "texture",
-    "gui",
-    "core",
-    "vetruvino"
+    "core"
 ]

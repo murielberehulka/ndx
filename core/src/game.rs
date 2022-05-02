@@ -1,10 +1,11 @@
+use std::rc::Rc;
 use futures::executor::block_on;
 
 use crate::*;
 
 pub struct Game {
     pub window: Window,
-    pub device: wgpu::Device,
+    pub device: Rc<wgpu::Device>,
     pub queue: wgpu::Queue,
     pub surface: Surface,
     pub depth_texture: texture::depth::Texture,
@@ -12,11 +13,10 @@ pub struct Game {
     pub lock_cursor: bool,
     pub camera: Camera,
     pub shaders: Shaders,
-    pub assets: Assets,
     pub animations: Vec<Animation>,
     pub diffuse_textures: Vec<texture::diffuse::Texture>,
-    pub bgls: Bgls,
-    pub gui: Gui
+    pub bgls: Rc<Bgls>,
+    pub scene: Scene
 }
 
 impl Game {
@@ -38,17 +38,17 @@ impl Game {
 
         let surface = block_on(Surface::new(&settings, &window, &device, &instance, surface_format));
         let depth_texture = texture::depth::Texture::new(&device, &surface.config);
-        let bgls = Bgls::new(&device);
+        let bgls = Rc::new(Bgls::new(&device));
         let camera = Camera::new(&settings.camera, &device, &window.size, &bgls);
         let shaders = crate::Shaders::new(&device, surface_format, &bgls);
-        let assets = Assets::new();
         let animations = vec![];
         let diffuse_textures = vec![];
-        let gui = Gui::new(&device, &queue, &bgls.texture_diffuse, surface_format, window.size.width, window.size.height);
+        let device = Rc::new(device);
+        let scene = Scene::new(device.clone(), bgls.clone());
 
         Self {
             window,
-            device,
+            device: device.clone(),
             queue,
             surface,
             depth_texture,
@@ -56,17 +56,15 @@ impl Game {
             lock_cursor: false,
             camera,
             shaders,
-            assets,
             animations,
             diffuse_textures,
-            bgls,
-            gui
+            bgls: bgls.clone(),
+            scene
         }
     }
     pub fn update(&mut self, control_flow: &mut winit::event_loop::ControlFlow) {
         self.camera.update(&self.queue);
-        self.gui.update(&self.device);
-        for mesh in &mut self.assets.meshes {
+        for mesh in &mut *self.scene.meshes {
             for model in &mut mesh.models {
                 model.instances.update(&self.device);
             }
@@ -113,10 +111,9 @@ impl Game {
             self.shaders.render(
                 &mut render_pass,
                 &self.camera.bind_group,
-                &self.assets.meshes,
+                &self.scene.meshes,
                 &self.diffuse_textures
             );
-            self.gui.render(&mut render_pass);
         }
         self.queue.submit(std::iter::once(encoder.finish()));
         output_texture.present();
@@ -136,7 +133,6 @@ impl Game {
         self.window.size = new_window_size;
         self.window.size_d2 = [self.window.size.width/2, self.window.size.height/2];
         self.camera.set_aspect((self.window.size.width / self.window.size.height)as f32);
-        self.gui.resize(self.window.size.width, self.window.size.height);
     }
     pub fn set_focus(&mut self, focus: bool) {
         self.window.on_focus = focus;
@@ -147,9 +143,6 @@ impl Game {
     pub fn close(&mut self) {
         self.close_requested = true;
     }
-    pub fn load_assets(&mut self) {
-        self.assets.load(&self.device)
-    }
     pub fn load_diffuse_texture<P: AsRef<std::path::Path>>(&mut self, path: P) {
         self.diffuse_textures.push(
             texture::diffuse::Texture::from_path(&self.device, &self.queue, &self.bgls.texture_diffuse, path.as_ref())
@@ -159,45 +152,5 @@ impl Game {
         for path in paths {
             self.load_diffuse_texture(path)
         }
-    }
-    pub fn add_model(&mut self, mesh_id: usize, shader: Shader) {
-        let material = Material::new(&self.device, &self.bgls, shader);
-        let mvt = &self.assets.meshes[mesh_id].vertex_type;
-        match material.shader {
-            Shader::Basic {..} => match mvt {
-                VertexType::Normal => {},
-                _ => panic!("invalid shader settings !. Shader::Basic shader can only be assigned to VertexType::Normal")
-            },
-            Shader::BasicDiffuseTexture {..} => match mvt {
-                VertexType::NormalTexture => {},
-                _ => panic!("invalid shader settings !. Shader::BasicDiffuseTexture shader can only be assigned to VertexType::NormalTexture")
-            },
-            Shader::AnimatedDiffuseTexture {..} => match mvt {
-                VertexType::NormalTextureSkin => {},
-                _ => panic!("invalid shader settings !. Shader::AnimatedDiffuseTexture shader can only be assigned to VertexType::NormalTextureSkin")
-            }
-        }
-        let instances = Instances::new();
-        self.assets.meshes[mesh_id].models.push(Model {
-            material,
-            instances
-        })
-    }
-    pub fn add_instance(&mut self, mesh_id: usize, model_id: usize, position: [f32;3], rotation: [f32;2], size: f32) {
-        let skin = match &self.assets.meshes[mesh_id].skin {
-            Some(mesh_skin) => Some(InstanceSkin::new(&self.device, &self.bgls, &mesh_skin.joints)),
-            None => None
-        };
-        self.assets.meshes[mesh_id].models[model_id].instances.add(InstanceRaw {
-            position,
-            rotation: 
-            [
-                rotation[0].cos(),
-                rotation[0].sin(),
-                rotation[1].cos(),
-                rotation[1].sin()
-            ],
-            size
-        }, skin)
     }
 }

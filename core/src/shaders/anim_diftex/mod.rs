@@ -26,7 +26,7 @@ impl Shader {
                 module: &shader,
                 entry_point: "vs_main",
                 buffers: &[
-                    crate::vertices::NUVS_LAYOUT,
+                    compiler::vertices::V_LAYOUT_NORMAL_UV_SKIN,
                     wgpu::VertexBufferLayout {
                         array_stride: std::mem::size_of::<crate::InstanceRaw>() as wgpu::BufferAddress,
                         step_mode: wgpu::VertexStepMode::Instance,

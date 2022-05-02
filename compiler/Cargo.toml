@@ -1,13 +1,9 @@
-[[bin]]
-name = "vetruvino"
-path = "src/main.rs"
-
 [package]
-name = "vetruvino"
+name = "compiler"
 version = "0.1.0"
 authors = ["Muriel Berehulka <murielberehulka@hotmail.com>"]
 edition = "2021"
-resolver = "2"
 
 [dependencies]
-core = { path = "../core" }
+wgpu = "0.12"
+bytemuck = { version = "1.8", features = ["derive"] }

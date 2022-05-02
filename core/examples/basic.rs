@@ -3,10 +3,10 @@ use core::{Game, Script, Shader, Key};
 struct MainScript {}
 impl Script for MainScript {
     fn setup(&mut self, game: &mut Game) {
-        game.load_assets();
-        game.load_diffuse_texture("assets/mutant/textures/Mutant_diffuse.png");
-        game.add_model(1, Shader::AnimatedDiffuseTexture { diffuse_texture_id: 0 });
-        game.add_instance(1, 0, [0.0, 0.0, 0.0], [0.0, 0.0], 0.05);
+        game.scene.load_assets();
+        game.load_diffuse_texture("assets/meshes/mutant/textures/Mutant_diffuse.png");
+        let model = game.scene.add_model(0, Shader::BasicDiffuseTexture { diffuse_texture_id: 0 });
+        game.scene.add_instance(model, [0.0, 0.0, 0.0], [0.0, 0.0], 1.0);
     }
     fn on_key_pressed(&mut self, game: &mut Game, key: &Key) {
         match key {

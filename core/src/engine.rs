@@ -7,17 +7,16 @@ use crate::*;
 
 pub struct Engine {
     event_loop: winit::event_loop::EventLoop<()>,
-    game: Game,
+    settings: Settings,
     scripts: Vec<Box<dyn Script>>
 }
 impl Engine {
     pub fn new(settings: Settings) -> Engine {
         env_logger::init();
         let event_loop = EventLoop::new();
-        let game = Game::new(settings, &event_loop);
         Self {
             event_loop,
-            game,
+            settings,
             scripts: vec![]
         }
     }
@@ -27,7 +26,7 @@ impl Engine {
     }
     pub fn start(self) {
         let event_loop = self.event_loop;
-        let mut game = self.game;
+        let mut game = Game::new(self.settings, &event_loop);
         let mut scripts = self.scripts;
 
         for script in &mut scripts {

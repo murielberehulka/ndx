@@ -46,10 +46,9 @@ impl Shaders {
                 if let crate::Shader::Basic {..} = model.material.shader {
                     if let Some(instance_buffer) = &model.instances.buffer {
                         render_pass.set_bind_group(1, model.material.bind_group.as_ref().unwrap(), &[]);
-                        render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+                        render_pass.set_vertex_buffer(0, mesh.vertices.buffer.slice(..));
                         render_pass.set_vertex_buffer(1, instance_buffer.slice(..));
-                        render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-                        render_pass.draw_indexed(0..mesh.indices_len, 0, 0..model.instances.raws.len() as u32);
+                        render_pass.draw(0..mesh.vertices.len as u32, 0..model.instances.raws.len() as u32);
                     }
                 }
             }
@@ -60,10 +59,9 @@ impl Shaders {
                 if let crate::Shader::BasicDiffuseTexture { diffuse_texture_id } = model.material.shader {
                     if let Some(instance_buffer) = &model.instances.buffer {
                         render_pass.set_bind_group(1, &diffuse_textures[diffuse_texture_id].bind_group, &[]);
-                        render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+                        render_pass.set_vertex_buffer(0, mesh.vertices.buffer.slice(..));
                         render_pass.set_vertex_buffer(1, instance_buffer.slice(..));
-                        render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-                        render_pass.draw_indexed(0..mesh.indices_len, 0, 0..model.instances.raws.len() as u32);
+                        render_pass.draw(0..mesh.vertices.len as u32, 0..model.instances.raws.len() as u32);
                     }
                 }
             }
@@ -73,13 +71,12 @@ impl Shaders {
             for model in &mesh.models {
                 if let crate::Shader::AnimatedDiffuseTexture { diffuse_texture_id } = model.material.shader {
                     render_pass.set_bind_group(1, &diffuse_textures[diffuse_texture_id].bind_group, &[]);
-                    render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
-                    render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+                    render_pass.set_vertex_buffer(0, mesh.vertices.buffer.slice(..));
                     render_pass.set_vertex_buffer(1, model.instances.buffer.as_ref().unwrap().slice(..));
                     let skins = model.instances.skins.as_ref().expect("Model has AnimatedDiffuseTexture shader but instances has no skins");
                     for (i, skin) in skins.iter().enumerate() {
                         render_pass.set_bind_group(2, &skin.bind_group, &[]);
-                        render_pass.draw_indexed(0..mesh.indices_len, 0, i as u32..(i as u32 +1));
+                        render_pass.draw(0..mesh.vertices.len as u32, i as u32..(i as u32 +1));
                     }
                 }
             }

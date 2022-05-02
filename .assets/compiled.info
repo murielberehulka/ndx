@@ -6,8 +6,8 @@ meshes:
 		size: 1.08 MB
 	1 cube.glb
 		vertices: 36
-		normals: False
+		normals: True
 		uvs: False
 		size: 0.0 MB
 total size: 1.08 MB
-compile time: 2.47 s
+compile time: 2.37 s

@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=NDX
-Exec=sh -c "cd ~/Documents/ndx;code -n ."
-Terminal=false
-Icon=visual-studio-code
-Type=Application
