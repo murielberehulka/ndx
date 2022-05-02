@@ -4,10 +4,15 @@
 
 Run python script with blender
 
+linux
 ```
 blender --background --python compiler\compile.py
 ```
-> blender.exe location: C:\\Program Files\\Blender Foundation\\Blender 3.0\\blender.exe
+
+windows
+```
+C:\\Program Files\\Blender Foundation\\Blender 3.0\\blender.exe --background --python compiler/compile.py
+```
 
 
 ## 📁 Project structure
